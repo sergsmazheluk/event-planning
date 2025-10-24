@@ -12,10 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\EventPlanning.Application\EventPlanning.Application.csproj" />
     <ProjectReference Include="..\EventPlanning.Infrastructure\EventPlanning.Infrastructure.csproj" />
   </ItemGroup>

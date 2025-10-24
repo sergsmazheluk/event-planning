@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Contracts;
 using EventPlanning.Domain.Events;
 
 namespace EventPlanning.Application.Mappings
@@ -7,9 +8,9 @@ namespace EventPlanning.Application.Mappings
     {
         public EventProfile()
         {
-            //CreateMap<FieldDefinition, FieldDefinitionDto>();
-            //CreateMap<EventDefinition, EventDefinitionDto>();
-            //CreateMap<Event, EventDto>();
+            CreateMap<FieldDefinition, FieldDefinitionDto>();
+            CreateMap<EventDefinition, EventDefinitionDto>();
+            CreateMap<Event, EventDto>();
         }
     }
 }
