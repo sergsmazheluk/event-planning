@@ -7,6 +7,8 @@
         public List<FieldDefinition> Fields { get; set; } = new();
         public DateTime CreatedAtUtc { get; init; } = DateTime.UtcNow;
 
+        private EventDefinition() { }
+
         public EventDefinition(string name) => Name = name;
     }
 }

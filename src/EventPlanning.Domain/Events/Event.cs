@@ -9,12 +9,14 @@
         public string? CustomDataJson { get; private set; }
         public int RegistrationsCount { get; private set; }
 
-        public Event(Guid defId, DateTime startsAt, int? capacity, string? custom)
+        private Event() { }
+
+        public Event(Guid eventDefinitionId, DateTime startsAtUtc, int? capacity, string? customDataJson)
         {
-            EventDefinitionId = defId;
-            StartsAtUtc = startsAt;
+            EventDefinitionId = eventDefinitionId;
+            StartsAtUtc = startsAtUtc;
             Capacity = capacity;
-            CustomDataJson = custom;
+            CustomDataJson = customDataJson;
         }
 
         public void IncrementRegistrations() => RegistrationsCount++;

@@ -8,6 +8,8 @@
         public string AnswersJson { get; init; } = "{}";
         public string Status { get; private set; } = "Pending";
 
+        private Registration() { }
+
         public Registration(Guid eventId, string userId, string answers)
         {
             EventId = eventId;
