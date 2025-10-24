@@ -18,6 +18,16 @@ namespace EventPlanning.Api.Controllers
         private readonly IMapper _mapper;
         public EventsController(AppDbContext db, IMapper mapper) { _db = db; _mapper = mapper; }
 
+        // ✅ Список событий: /api/events
+        [HttpGet]
+        public async Task<ActionResult<List<EventDto>>> GetAll()
+        {
+            var events = await _db.Events.AsNoTracking().ToListAsync();
+            var dto = _mapper.Map<List<EventDto>>(events);
+            return Ok(dto);
+        }
+
+        // /api/events/{id}
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -26,15 +36,19 @@ namespace EventPlanning.Api.Controllers
             return Ok(_mapper.Map<EventDto>(ev));
         }
 
+        // /api/events/{id}/schema
         [HttpGet("{id:guid}/schema")]
         public async Task<IActionResult> GetSchema(Guid id)
         {
             var ev = await _db.Events.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             if (ev is null) return NotFound();
-            var def = await _db.EventDefinitions.AsNoTracking().FirstAsync(x => x.Id == ev.EventDefinitionId);
+
+            var def = await _db.EventDefinitions.AsNoTracking()
+                                               .FirstAsync(x => x.Id == ev.EventDefinitionId);
             return Ok(_mapper.Map<EventDefinitionDto>(def));
         }
 
+        // /api/events/{id}/register
         [Authorize]
         [HttpPost("{id:guid}/register")]
         public async Task<IActionResult> Register(Guid id, [FromBody] JsonElement answers)
@@ -43,12 +57,15 @@ namespace EventPlanning.Api.Controllers
             if (ev is null) return NotFound();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var exists = await _db.Registrations.AnyAsync(r => r.EventId == id && r.UserId == userId);
+
+            var exists = await _db.Registrations
+                                  .AnyAsync(r => r.EventId == id && r.UserId == userId);
             if (exists) return Conflict(new { error = "Already registered" });
 
             var reg = new Registration(id, userId, answers.GetRawText());
             _db.Registrations.Add(reg);
             ev.IncrementRegistrations();
+
             await _db.SaveChangesAsync();
             return Ok(new { reg.Id, status = reg.Status });
         }

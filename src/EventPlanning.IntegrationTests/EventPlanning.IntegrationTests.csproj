@@ -19,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EventPlanning.Api\EventPlanning.Api.csproj" />
+    <ProjectReference Include="..\EventPlanning.Infrastructure\EventPlanning.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
