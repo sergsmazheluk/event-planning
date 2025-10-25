@@ -1,6 +1,7 @@
 using AutoMapper;
 using EventPlanning.Api.Middleware;
 using EventPlanning.Application.Mappings;
+using EventPlanning.Application.Validation;
 using EventPlanning.Infrastructure.Identity;
 using EventPlanning.Infrastructure.Notifications.Email;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +38,8 @@ namespace EventPlanning.Api
             })
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            builder.Services.AddSingleton<IRegistrationAnswersValidator, RegistrationAnswersValidator>();
 
             builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
             builder.Services.AddControllers();

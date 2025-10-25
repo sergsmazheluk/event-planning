@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Contracts;
+using EventPlanning.Application.Validation;
 using EventPlanning.Domain.Events;
 using EventPlanning.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,12 @@ namespace EventPlanning.Api.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IMapper _mapper;
-        public EventsController(AppDbContext db, IMapper mapper) { _db = db; _mapper = mapper; }
+        private readonly IRegistrationAnswersValidator _answersValidator;
+        
+        public EventsController(AppDbContext db, IMapper mapper, IRegistrationAnswersValidator answersValidator)
+        {
+            _db = db; _mapper = mapper; _answersValidator = answersValidator;
+        }
 
         // ✅ Список событий: /api/events
         [HttpGet]
@@ -68,6 +74,12 @@ namespace EventPlanning.Api.Controllers
                     return Conflict(new { error = "CAPACITY_EXCEEDED" });
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+                var def = await _db.EventDefinitions.AsNoTracking()
+                    .FirstAsync(d => d.Id == ev.EventDefinitionId);
+
+                var (ok, errs) = _answersValidator.Validate(answers, def.Fields);
+                if (!ok) return BadRequest(new { error = "INVALID_ANSWERS", details = errs });
 
                 var exists = await _db.Registrations
                                       .AnyAsync(r => r.EventId == id && r.UserId == userId);
