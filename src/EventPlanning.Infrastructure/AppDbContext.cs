@@ -62,6 +62,7 @@ namespace EventPlanning.Infrastructure.Identity
                 e.HasKey(x => x.Id);
                 e.Property(x => x.CustomDataJson).HasColumnType("nvarchar(max)");
                 e.Property(x => x.RegistrationsCount).HasDefaultValue(0);
+                e.Property(x => x.RowVersion).IsRowVersion();
             });
 
             b.Entity<Registration>(e =>

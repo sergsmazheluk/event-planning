@@ -9,6 +9,8 @@
         public string? CustomDataJson { get; private set; }
         public int RegistrationsCount { get; private set; }
 
+        public byte[]? RowVersion { get; private set; } //concurrency token
+
         private Event() { }
 
         public Event(Guid eventDefinitionId, DateTime startsAtUtc, int? capacity, string? customDataJson)
