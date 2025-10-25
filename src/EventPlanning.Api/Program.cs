@@ -1,4 +1,5 @@
 using AutoMapper;
+using EventPlanning.Api.Middleware;
 using EventPlanning.Application.Mappings;
 using EventPlanning.Infrastructure.Identity;
 using EventPlanning.Infrastructure.Notifications.Email;
@@ -47,6 +48,7 @@ namespace EventPlanning.Api
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
             app.UseAuthentication();
+            app.UseRequireCompletedProfile();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
