@@ -53,21 +53,44 @@ namespace EventPlanning.Api.Controllers
         [HttpPost("{id:guid}/register")]
         public async Task<IActionResult> Register(Guid id, [FromBody] JsonElement answers)
         {
-            var ev = await _db.Events.FindAsync(id);
-            if (ev is null) return NotFound();
+            // retry при конфликтах
+            const int maxRetries = 3;
+            for (var attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                await using var tx = await _db.Database.BeginTransactionAsync();
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var ev = await _db.Events.Where(e => e.Id == id)
+                                         .FirstOrDefaultAsync();
 
-            var exists = await _db.Registrations
-                                  .AnyAsync(r => r.EventId == id && r.UserId == userId);
-            if (exists) return Conflict(new { error = "Already registered" });
+                if (ev is null) return NotFound();
 
-            var reg = new Registration(id, userId, answers.GetRawText());
-            _db.Registrations.Add(reg);
-            ev.IncrementRegistrations();
+                if (ev.Capacity is int cap && ev.RegistrationsCount >= cap)
+                    return Conflict(new { error = "CAPACITY_EXCEEDED" });
 
-            await _db.SaveChangesAsync();
-            return Ok(new { reg.Id, status = reg.Status });
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+                var exists = await _db.Registrations
+                                      .AnyAsync(r => r.EventId == id && r.UserId == userId);
+                if (exists) return Conflict(new { error = "ALREADY_REGISTERED" });
+
+                _db.Registrations.Add(new Registration(id, userId, answers.GetRawText()));
+                ev.IncrementRegistrations();
+
+                try
+                {
+                    await _db.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    return Ok(new { status = "registered" });
+                }
+                catch (DbUpdateConcurrencyException) when (attempt < maxRetries)
+                {
+                    await tx.RollbackAsync();
+                    await Task.Delay(20 * attempt); // экспоненциальная пауза
+                    continue; // повторим попытку
+                }
+            }
+
+            return StatusCode(409, new { error = "CONCURRENCY_CONFLICT" });
         }
     }
 }
