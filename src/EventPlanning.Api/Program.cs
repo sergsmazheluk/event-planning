@@ -1,4 +1,4 @@
-using AutoMapper;
+п»їusing AutoMapper;
 using EventPlanning.Api.Middleware;
 using EventPlanning.Application.Mappings;
 using EventPlanning.Application.Validation;
@@ -17,14 +17,14 @@ namespace EventPlanning.Api
 
             builder.Services.AddSingleton<IMapper>(sp =>
             {
-                // 1) собираем конфигурацию через выражение
+                // 1) СЃРѕР±РёСЂР°РµРј РєРѕРЅС„РёРіСѓСЂР°С†РёСЋ С‡РµСЂРµР· РІС‹СЂР°Р¶РµРЅРёРµ
                 var expr = new MapperConfigurationExpression();
                 expr.AddProfile<EventProfile>();
 
-                // 2) достаём ILoggerFactory из DI — нужен для некоторых версий AutoMapper
+                // 2) РґРѕСЃС‚Р°С‘Рј ILoggerFactory РёР· DI вЂ” РЅСѓР¶РµРЅ РґР»СЏ РЅРµРєРѕС‚РѕСЂС‹С… РІРµСЂСЃРёР№ AutoMapper
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                // 3) создаём конфигурацию и сам маппер
+                // 3) СЃРѕР·РґР°С‘Рј РєРѕРЅС„РёРіСѓСЂР°С†РёСЋ Рё СЃР°Рј РјР°РїРїРµСЂ
                 var config = new MapperConfiguration(expr, loggerFactory);
                 return new Mapper(config, sp.GetService);
             });
@@ -41,7 +41,15 @@ namespace EventPlanning.Api
 
             builder.Services.AddSingleton<IRegistrationAnswersValidator, RegistrationAnswersValidator>();
 
-            builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddSingleton<IEmailSender, NoopEmailSender>();   // в†ђ dev
+            }
+            else
+            {
+                builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();   // в†ђ prod
+            }
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
